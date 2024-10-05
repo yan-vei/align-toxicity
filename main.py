@@ -1,9 +1,12 @@
 import wandb
-import torch
+import tqdm
 import hydra
+import json
 from omegaconf import DictConfig, OmegaConf
 from settings import settings
-from transformers import AutoModelForCausalLM
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from utils.preprocess import preprocess_hatexplain
+from utils.prompt import create_prompt
 
 
 @hydra.main(config_path='configs', config_name='defaults', version_base=None)
@@ -13,7 +16,6 @@ def run_pipeline(cfg: DictConfig):
     :param cfg: hydra config
     :return: void
     """
-
     # Log into wandb if required
     use_wandb = cfg.basic.use_wandb
     if use_wandb:
@@ -34,6 +36,39 @@ def run_pipeline(cfg: DictConfig):
         **hf_kwargs,
     )
 
+    # Create tokenizer for the model
+    tokenizer = AutoTokenizer.from_pretrained(pretrained)
+
+    # Load correct dataset
+    dataset_name = cfg.dataset.name
+    dataset_path = cfg.dataset.path
+
+    if dataset_name == 'hatexplain':
+        examples = preprocess_hatexplain(dataset_path)
+
+    # Create prompts
+    prepended_prompt = cfg.prompts.text
+    examples_with_prompts = list(map(lambda e: create_prompt(prepended_prompt, e), examples))
+
+    examples_with_labels = []
+    for example in tqdm(examples_with_prompts):
+        inputs = tokenizer(example['prompt'], return_tensors="pt")
+        outputs = model.generate(**inputs, max_length=5)
+        result = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        label = result.split('Answer:')[-1].strip()
+        example['predicted_label'] = label
+
+        examples_with_labels.append(example)
+
+    # Save the processed data with labels
+    with open(cfg.basic.output_dir + "/" + cfg.model.name + "/" + cfg.dataset.name + ".json", 'w') as f:
+        json.dump(examples_with_labels, f)
+
+    print(f"\t Finished processing the dataset {cfg.dataset.name} with the model + {cfg.model.name}.")
 
     if use_wandb:
         wandb.finish()
+
+
+if __name__ == "__main__":
+    run_pipeline()

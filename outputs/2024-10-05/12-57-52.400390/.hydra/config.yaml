@@ -1,0 +1,12 @@
+basic:
+  use_wandb: false
+  device_map: auto
+  offload_folder: ./offload
+model:
+  name: meta-llama/Llama-2-7b-hf
+dataset:
+  name: hatexplain
+  path: datasets/hatexplain.json
+prompt:
+  text: Answer either with 1 for toxic or 0 for non-toxic. Classify the following
+    text as either toxic or non-toxic.

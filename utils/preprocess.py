@@ -1,7 +1,7 @@
 import json
 
 
-def process_hatexplain(filepath):
+def preprocess_hatexplain(filepath):
     """
     Preprocess HateXplain dataset and label it with 1 for toxic and 0 for non-toxic tweets.
 

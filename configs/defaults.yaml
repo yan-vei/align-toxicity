@@ -2,10 +2,12 @@ basic:
   use_wandb: False
   device_map: auto
   offload_folder: ./offload
+  output_dir: outputs
 defaults:
   - _self_
   - model: llama
   - dataset: hatexplain
+  - prompt: defaults
 hydra:
   job:
     chdir: False
