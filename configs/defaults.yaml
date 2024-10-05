@@ -2,7 +2,7 @@ basic:
   use_wandb: False
   device_map: auto
   offload_folder: ./offload
-  output_dir: outputs
+  output_dir: results
 defaults:
   - _self_
   - model: llama
