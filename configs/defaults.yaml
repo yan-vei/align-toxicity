@@ -1,0 +1,13 @@
+basic:
+  use_wandb: False
+  device_map: auto
+  offload_folder: ./offload
+defaults:
+  - _self_
+  - model: llama
+  - dataset: hatexplain
+hydra:
+  job:
+    chdir: False
+  run:
+    dir: ./outputs/${now:%Y-%m-%d}/${now:%H-%M-%S.%f}

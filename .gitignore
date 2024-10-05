@@ -1,0 +1,4 @@
+.env
+scratch.py
+.idea
+__pycache__/
