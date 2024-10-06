@@ -39,3 +39,4 @@ def preprocess_hatexplain(filepath):
         processed_list.append(processed_entry)
 
     return processed_list
+

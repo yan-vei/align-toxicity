@@ -4,7 +4,7 @@ import hydra
 import json
 from omegaconf import DictConfig, OmegaConf
 from settings import settings
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, AutoModelForSequenceClassification
 from utils.preprocess import preprocess_hatexplain
 from utils.prompt import create_prompt
 
@@ -27,17 +27,8 @@ def run_pipeline(cfg: DictConfig):
         wandb.init(project=project_name, name=cfg.basic.wandb_run,
                    config=cfg_copy)
 
-    # Create model based on configs
-    pretrained = cfg.model.name
-    hf_kwargs = {"device_map": cfg.basic.device_map, "offload_folder": cfg.basic.offload_folder}
-    model = AutoModelForCausalLM.from_pretrained(
-        pretrained,
-        use_auth_token=True,
-        **hf_kwargs,
-    )
-
     # Create tokenizer for the model
-    tokenizer = AutoTokenizer.from_pretrained(pretrained)
+    tokenizer = AutoTokenizer.from_pretrained(cfg.model.name)
 
     # Load correct dataset
     dataset_name = cfg.dataset.name
@@ -46,19 +37,10 @@ def run_pipeline(cfg: DictConfig):
     if dataset_name == 'hatexplain':
         examples = preprocess_hatexplain(dataset_path)
 
-    # Create prompts
-    prepended_prompt = cfg.prompt.text
-    examples_with_prompts = list(map(lambda e: create_prompt(prepended_prompt, e), examples))
-
-    examples_with_labels = []
-    for example in tqdm.tqdm(examples_with_prompts):
-        inputs = tokenizer(example['prompt'], return_tensors="pt")
-        outputs = model.generate(**inputs, max_new_tokens=5)
-        result = tokenizer.decode(outputs[0], skip_special_tokens=True)
-        label = result.split('Answer:')[-1].strip()
-        example['predicted_label'] = label
-
-        examples_with_labels.append(example)
+    if cfg.model.output_folder == 'llama':
+        examples_with_labels = run_llama(cfg=cfg, tokenizer=tokenizer, examples=examples)
+    elif cfg.model.output_folder == 'hatebert':
+        examples_with_labels = run_hatebert(cfg=cfg, tokenizer=tokenizer, examples=examples)
 
     # Save the processed data with labels
     with open(cfg.basic.output_dir + "/" + cfg.model.output_folder + "/" + cfg.dataset.name + ".json", 'w') as f:
@@ -69,6 +51,64 @@ def run_pipeline(cfg: DictConfig):
     if use_wandb:
         wandb.finish()
 
+
+def run_llama(cfg, tokenizer, examples):
+    """
+    Run labeling pipeline using Llama model.
+    :param cfg: hydra config
+    :param examples: dict, unlabeled data
+    :param tokenizer: tokenizer
+    :return: dict, examples with predicted labels
+    """
+
+    hf_kwargs = {"device_map": cfg.basic.device_map, "offload_folder": cfg.basic.offload_folder}
+    model = AutoModelForCausalLM.from_pretrained(
+        cfg.model.name,
+        use_auth_token=True,
+        **hf_kwargs,
+    )
+
+    # Create prompts
+    prepended_prompt = cfg.prompt.text
+    examples_with_prompts = list(map(lambda e: create_prompt(prepended_prompt, e), examples))
+
+    # Classify examples
+    examples_with_labels = []
+    for example in tqdm.tqdm(examples_with_prompts):
+        inputs = tokenizer(example['prompt'], return_tensors="pt")
+        outputs = model.generate(**inputs, max_new_tokens=cfg.model.max_new_tokens)
+        result = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        label = result.split('Answer:')[-1].strip()
+        example['predicted_label'] = label
+
+        examples_with_labels.append(example)
+
+    return examples_with_labels
+
+
+def run_hatebert(cfg, tokenizer, examples):
+    """
+    Run labeling pipeline using HateBERT model.
+    :param cfg: hydra config
+    :param tokenizer: tokenizer
+    :param examples: dict, unlabeled data
+    :return: dict, examples with predicted labels
+    """
+
+    model = AutoModelForSequenceClassification.from_pretrained(cfg.model.name)
+
+    # Classify examples
+    examples_with_labels = []
+    for example in tqdm.tqdm(examples):
+        inputs = tokenizer(example['text'], padding=True, truncation=True, return_tensors="pt")
+        outputs = model(**inputs)
+        label = outputs.logits.argmax(dim=-1).item()
+        example['predicted_label'] = label
+
+        examples_with_labels.append(example)
+        break
+
+    return examples_with_labels
 
 if __name__ == "__main__":
     run_pipeline()

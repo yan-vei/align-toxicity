@@ -5,7 +5,7 @@ basic:
   output_dir: results
 defaults:
   - _self_
-  - model: llama
+  - model: hatebert
   - dataset: hatexplain
   - prompt: defaults
 hydra:
