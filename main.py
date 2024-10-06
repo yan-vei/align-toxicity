@@ -47,7 +47,7 @@ def run_pipeline(cfg: DictConfig):
         examples = preprocess_hatexplain(dataset_path)
 
     # Create prompts
-    prepended_prompt = cfg.prompts.text
+    prepended_prompt = cfg.prompt.text
     examples_with_prompts = list(map(lambda e: create_prompt(prepended_prompt, e), examples))
 
     examples_with_labels = []
