@@ -59,13 +59,12 @@ def run_pipeline(cfg: DictConfig):
         example['predicted_label'] = label
 
         examples_with_labels.append(example)
-        break
 
     # Save the processed data with labels
     with open(cfg.basic.output_dir + "/" + cfg.model.output_folder + "/" + cfg.dataset.name + ".json", 'w') as f:
         json.dump(examples_with_labels, f)
 
-    print(f"\t Finished processing the dataset {cfg.dataset.name} with the model + {cfg.model.name}.")
+    print(f"\t Finished processing the dataset {cfg.dataset.name} with the model {cfg.model.name}.")
 
     if use_wandb:
         wandb.finish()
