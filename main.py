@@ -51,7 +51,7 @@ def run_pipeline(cfg: DictConfig):
     examples_with_prompts = list(map(lambda e: create_prompt(prepended_prompt, e), examples))
 
     examples_with_labels = []
-    for example in tqdm(examples_with_prompts):
+    for example in tqdm.tqdm(examples_with_prompts):
         inputs = tokenizer(example['prompt'], return_tensors="pt")
         outputs = model.generate(**inputs, max_length=5)
         result = tokenizer.decode(outputs[0], skip_special_tokens=True)
