@@ -53,7 +53,7 @@ def run_pipeline(cfg: DictConfig):
     examples_with_labels = []
     for example in tqdm.tqdm(examples_with_prompts):
         inputs = tokenizer(example['prompt'], return_tensors="pt")
-        outputs = model.generate(**inputs, max_length=5)
+        outputs = model.generate(**inputs, max_length=500, max_new_tokens=5)
         result = tokenizer.decode(outputs[0], skip_special_tokens=True)
         label = result.split('Answer:')[-1].strip()
         example['predicted_label'] = label
