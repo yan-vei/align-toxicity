@@ -106,7 +106,6 @@ def run_hatebert(cfg, tokenizer, examples):
         example['predicted_label'] = label
 
         examples_with_labels.append(example)
-        break
 
     return examples_with_labels
 
