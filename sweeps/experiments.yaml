@@ -1,9 +1,10 @@
+
 program: main.py
 name: all-experiments
 method: grid
 parameters:
   dataset:
-    values: [implicit-hate]
+    values: [implicit_hate]
   model:
     values: [llama, hatebert, gpt-2]
 command:

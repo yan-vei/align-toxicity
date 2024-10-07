@@ -1,0 +1,20 @@
+2024-10-07 15:53:16 INFO Running runs: []
+2024-10-07 15:53:16 INFO Agent received command: run
+2024-10-07 15:53:16 INFO Agent starting run with config:
+	dataset: implicit-hate
+	model: llama
+2024-10-07 15:53:16 INFO About to run command: /usr/bin/env python main.py dataset=implicit-hate model=llama
+2024-10-07 15:53:21 INFO Running runs: ['6shvonah']
+2024-10-07 15:53:27 INFO Cleaning up finished run: 6shvonah
+2024-10-07 15:53:27 INFO Agent received command: run
+2024-10-07 15:53:27 INFO Agent starting run with config:
+	dataset: implicit-hate
+	model: hatebert
+2024-10-07 15:53:27 INFO About to run command: /usr/bin/env python main.py dataset=implicit-hate model=hatebert
+2024-10-07 15:53:32 INFO Running runs: ['90ilwlgn']
+2024-10-07 15:53:37 INFO Cleaning up finished run: 90ilwlgn
+2024-10-07 15:53:37 INFO Agent received command: run
+2024-10-07 15:53:37 INFO Agent starting run with config:
+	dataset: implicit-hate
+	model: gpt-2
+2024-10-07 15:53:37 INFO About to run command: /usr/bin/env python main.py dataset=implicit-hate model=gpt-2
