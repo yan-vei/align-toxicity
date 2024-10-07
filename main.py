@@ -136,7 +136,7 @@ def run_gpt2(cfg, tokenizer, examples):
     examples_with_labels = []
     for example in tqdm.tqdm(examples_with_prompts):
         inputs = tokenizer(example['prompt'], return_tensors="pt")
-        outputs = model.generate(**inputs, max_new_tokens=cfg.model.max_new_tokens)
+        outputs = model.generate(**inputs, max_new_tokens=cfg.model.max_new_tokens, pad_token_id=tokenizer.eos_token_id)
         result = tokenizer.decode(outputs[0], skip_special_tokens=True)
         label = result.split('Answer:')[-1].strip()
         example['predicted_label'] = label
