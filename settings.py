@@ -1,6 +1,5 @@
 from pydantic_settings import BaseSettings
 from decouple import config
-import os
 
 
 class Settings(BaseSettings):
@@ -9,11 +8,7 @@ class Settings(BaseSettings):
     for the experiments.
     """
 
-    # wandb settings
     WANDB_API_KEY: str = config("WANDB_API_KEY", cast=str)
-
-    # other settings
-    USER: str = str(os.getlogin())
 
     class Config:
         case_sensitive = True

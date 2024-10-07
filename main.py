@@ -27,12 +27,12 @@ def run_pipeline(cfg: DictConfig):
         wandb.init(project=project_name, name=cfg.basic.wandb_run,
                    config=cfg_copy)
 
-    # Create tokenizer for the model
-    tokenizer = AutoTokenizer.from_pretrained(cfg.model.name)
-
     # Load correct dataset
     dataset_name = cfg.dataset.name
     dataset_path = cfg.dataset.path
+
+    # Load tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(cfg.model.name)
 
     if dataset_name == 'hatexplain':
         examples = preprocess_hatexplain(dataset_path)
@@ -41,6 +41,8 @@ def run_pipeline(cfg: DictConfig):
         examples_with_labels = run_llama(cfg=cfg, tokenizer=tokenizer, examples=examples)
     elif cfg.model.output_folder == 'hatebert':
         examples_with_labels = run_hatebert(cfg=cfg, tokenizer=tokenizer, examples=examples)
+    elif cfg.model.output_folder == 'gpt2':
+        examples_with_labels = run_gpt2(cfg=cfg, tokenizer=tokenizer, examples=examples)
 
     # Save the processed data with labels
     with open(cfg.basic.output_dir + "/" + cfg.model.output_folder + "/" + cfg.dataset.name + ".json", 'w') as f:
@@ -108,6 +110,41 @@ def run_hatebert(cfg, tokenizer, examples):
         examples_with_labels.append(example)
 
     return examples_with_labels
+
+
+def run_gpt2(cfg, tokenizer, examples):
+    """
+    Run labeling pipeline using GPT-3.5 free tier model.
+    :param cfg: hydra config
+    :param examples: dict, unlabeled data
+    :param tokenizer: tokenizer
+    :return: dict, examples with predicted labels
+    """
+
+    hf_kwargs = {"device_map": cfg.basic.device_map, "offload_folder": cfg.basic.offload_folder}
+    model = AutoModelForCausalLM.from_pretrained(
+        cfg.model.name,
+        use_auth_token=True,
+        **hf_kwargs,
+    )
+
+    # Create prompts
+    prepended_prompt = cfg.prompt.text
+    examples_with_prompts = list(map(lambda e: create_prompt(prepended_prompt, e), examples))
+
+    # Classify examples
+    examples_with_labels = []
+    for example in tqdm.tqdm(examples_with_prompts):
+        inputs = tokenizer(example['prompt'], return_tensors="pt")
+        outputs = model.generate(**inputs, max_new_tokens=cfg.model.max_new_tokens)
+        result = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        label = result.split('Answer:')[-1].strip()
+        example['predicted_label'] = label
+
+        examples_with_labels.append(example)
+
+    return examples_with_labels
+
 
 if __name__ == "__main__":
     run_pipeline()
