@@ -1,6 +1,20 @@
 import json
 
 
+def preprocess_implicit_hate(filepath):
+    """
+    Preprocess Implicit Hate dataset; labeling is 1 for toxic and 0 for non-toxic.
+
+    :param filepath: str, directory with the dataset (.json format)
+    :return: list of dicts
+    """
+
+    with open(filepath, 'r') as file:
+        data = json.load(file)
+
+    return data
+
+
 def preprocess_hatexplain(filepath):
     """
     Preprocess HateXplain dataset and label it with 1 for toxic and 0 for non-toxic tweets.

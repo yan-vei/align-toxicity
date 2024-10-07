@@ -5,8 +5,8 @@ basic:
   output_dir: results
 defaults:
   - _self_
-  - model: gpt-2
-  - dataset: hatexplain
+  - model: hatebert
+  - dataset: implicit_hate
   - prompt: defaults
 hydra:
   job:
