@@ -1,0 +1,13 @@
+program: main.py
+name: all-experiments
+method: grid
+parameters:
+  dataset:
+    values: [implicit-hate]
+  model:
+    values: [llama, hatebert, gpt-2]
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args_no_hyphens}
