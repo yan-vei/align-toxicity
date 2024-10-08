@@ -6,7 +6,7 @@ basic:
 defaults:
   - _self_
   - model: hatebert
-  - dataset: implicit_hate
+  - dataset: offenseval_implicit
   - prompt: defaults
 hydra:
   job:

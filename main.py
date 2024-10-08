@@ -5,7 +5,7 @@ import json
 from omegaconf import DictConfig, OmegaConf
 from settings import settings
 from transformers import AutoModelForCausalLM, AutoTokenizer, AutoModelForSequenceClassification
-from utils.preprocess import preprocess_hatexplain, preprocess_implicit_hate
+from utils.preprocess import preprocess_hatexplain, preprocess_dataset
 from utils.prompt import create_prompt
 
 
@@ -37,7 +37,9 @@ def run_pipeline(cfg: DictConfig):
     if dataset_name == 'hatexplain':
         examples = preprocess_hatexplain(dataset_path)
     elif dataset_name == 'implicit_hate':
-        examples = preprocess_implicit_hate(dataset_path)
+        examples = preprocess_dataset(dataset_path)
+    elif dataset_name == 'offenseval_implicit':
+        examples = preprocess_dataset(dataset_path)
 
     if cfg.model.output_folder == 'llama':
         examples_with_labels = run_llama(cfg=cfg, tokenizer=tokenizer, examples=examples)
