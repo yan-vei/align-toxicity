@@ -4,7 +4,7 @@ name: all-experiments
 method: grid
 parameters:
   dataset:
-    values: [offenseval_implicit]
+    values: [offenseval_implicit, implicit_hate]
   model:
     values: [llama, hatebert, gpt-2]
 command:
