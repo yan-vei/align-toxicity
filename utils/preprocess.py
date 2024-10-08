@@ -1,9 +1,9 @@
 import json
 
 
-def preprocess_implicit_hate(filepath):
+def preprocess_dataset(filepath):
     """
-    Preprocess Implicit Hate dataset; labeling is 1 for toxic and 0 for non-toxic.
+    Preprocess Implicit Hate dataset or OffensEval; labeling is 1 for toxic and 0 for non-toxic.
 
     :param filepath: str, directory with the dataset (.json format)
     :return: list of dicts
