@@ -1,6 +1,0 @@
-wandb_version: 1
-
-dataset:
-  value: implicit-hate
-model:
-  value: llama
