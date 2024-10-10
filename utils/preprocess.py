@@ -1,5 +1,5 @@
 import json
-
+import random
 
 def preprocess_dataset(filepath):
     """
@@ -53,4 +53,34 @@ def preprocess_hatexplain(filepath):
         processed_list.append(processed_entry)
 
     return processed_list
+
+
+def preprocess_mixed_irony(filepath):
+    """
+    Mixed irony dataset is unbalanced. We will randomly sample regular irony and tweets
+    to select roughly the same amount of tweets as the number of tweets with hateful irony.
+    :param filepath: str, directory with the dataset (.json format)
+    :return: list of dicts
+    """
+
+    with open(filepath, 'r') as file:
+        data = json.load(file)
+
+    # Select all hateful irony tweets
+    hateful_irony_items = [item for item in data if item['class'] == 'hateful_irony']
+
+    # Count hateful irony items in the list
+    hateful_irony_count = sum([1 if item['class'] == 'hateful_irony' else 0 for item in data])
+
+    # Select all regular and non-hateful irony items
+    regular_items = [item for item in data if item["class"] == "regular"]
+    irony_items = [item for item in data if item['class'] == "regular_irony"]
+
+    # Sample from them based on the count of hateful_irony_count
+    selected_items = random.sample(regular_items, hateful_irony_count) + random.sample(irony_items, hateful_irony_count)
+
+    # Final items
+    return selected_items + hateful_irony_items
+
+
 
