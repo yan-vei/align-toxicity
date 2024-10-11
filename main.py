@@ -2,6 +2,7 @@ import wandb
 import tqdm
 import hydra
 import json
+import torch
 from omegaconf import DictConfig, OmegaConf
 from settings import settings
 from transformers import AutoModelForCausalLM, AutoTokenizer, AutoModelForSequenceClassification
@@ -31,6 +32,9 @@ def run_pipeline(cfg: DictConfig):
     dataset_name = cfg.dataset.name
     dataset_path = cfg.dataset.path
 
+    # Get device
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(cfg.model.name)
 
@@ -42,15 +46,13 @@ def run_pipeline(cfg: DictConfig):
         examples = preprocess_dataset(dataset_path)
     elif dataset_name == 'mixed_irony':
         examples = preprocess_mixed_irony(dataset_path)
-        print(len(examples))
-        print(examples[0])
 
     if cfg.model.output_folder == 'llama':
-        examples_with_labels = run_llama(cfg=cfg, tokenizer=tokenizer, examples=examples)
+        examples_with_labels = run_llama(cfg=cfg, tokenizer=tokenizer, examples=examples, device=device)
     elif cfg.model.output_folder == 'hatebert':
-        examples_with_labels = run_hatebert(cfg=cfg, tokenizer=tokenizer, examples=examples)
+        examples_with_labels = run_hatebert(cfg=cfg, tokenizer=tokenizer, examples=examples, device=device)
     elif cfg.model.output_folder == 'gpt2':
-        examples_with_labels = run_gpt2(cfg=cfg, tokenizer=tokenizer, examples=examples)
+        examples_with_labels = run_gpt2(cfg=cfg, tokenizer=tokenizer, examples=examples, device=device)
 
     # Save the processed data with labels
     with open(cfg.basic.output_dir + "/" + cfg.model.output_folder + "/" + cfg.dataset.name + ".json", 'w') as f:
@@ -62,7 +64,7 @@ def run_pipeline(cfg: DictConfig):
         wandb.finish()
 
 
-def run_llama(cfg, tokenizer, examples):
+def run_llama(cfg, tokenizer, examples, device):
     """
     Run labeling pipeline using Llama model.
     :param cfg: hydra config
@@ -85,7 +87,7 @@ def run_llama(cfg, tokenizer, examples):
     # Classify examples
     examples_with_labels = []
     for example in tqdm.tqdm(examples_with_prompts):
-        inputs = tokenizer(example['prompt'], return_tensors="pt")
+        inputs = tokenizer(example['prompt'], return_tensors="pt").to(device)
         outputs = model.generate(**inputs, max_new_tokens=cfg.model.max_new_tokens)
         result = tokenizer.decode(outputs[0], skip_special_tokens=True)
         label = result.split('Answer:')[-1].strip()
@@ -96,7 +98,7 @@ def run_llama(cfg, tokenizer, examples):
     return examples_with_labels
 
 
-def run_hatebert(cfg, tokenizer, examples):
+def run_hatebert(cfg, tokenizer, examples, device):
     """
     Run labeling pipeline using HateBERT model.
     :param cfg: hydra config
@@ -110,7 +112,7 @@ def run_hatebert(cfg, tokenizer, examples):
     # Classify examples
     examples_with_labels = []
     for example in tqdm.tqdm(examples):
-        inputs = tokenizer(example['text'], padding=True, truncation=True, return_tensors="pt")
+        inputs = tokenizer(example['text'], padding=True, truncation=True, return_tensors="pt").to(device)
         outputs = model(**inputs)
         label = outputs.logits.argmax(dim=-1).item()
         example['predicted_label'] = label
@@ -120,7 +122,7 @@ def run_hatebert(cfg, tokenizer, examples):
     return examples_with_labels
 
 
-def run_gpt2(cfg, tokenizer, examples):
+def run_gpt2(cfg, tokenizer, examples, device):
     """
     Run labeling pipeline using GPT-3.5 free tier model.
     :param cfg: hydra config
@@ -143,7 +145,7 @@ def run_gpt2(cfg, tokenizer, examples):
     # Classify examples
     examples_with_labels = []
     for example in tqdm.tqdm(examples_with_prompts):
-        inputs = tokenizer(example['prompt'], return_tensors="pt")
+        inputs = tokenizer(example['prompt'], return_tensors="pt").to(device)
         outputs = model.generate(**inputs, max_new_tokens=cfg.model.max_new_tokens, pad_token_id=tokenizer.eos_token_id)
         result = tokenizer.decode(outputs[0], skip_special_tokens=True)
         label = result.split('Answer:')[-1].strip()
