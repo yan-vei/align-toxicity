@@ -82,7 +82,8 @@ def run_llama(cfg, tokenizer, examples, device):
 
     # Create prompts
     prepended_prompt = cfg.prompt.text
-    examples_with_prompts = list(map(lambda e: create_prompt(prepended_prompt, e), examples))
+    examples_with_prompts = list(map(lambda e: create_prompt(prepended_prompt, e,
+                                                             is_fewshot=cfg.basic.is_fewshot), examples))
 
     # Classify examples
     examples_with_labels = []
@@ -140,7 +141,8 @@ def run_gpt2(cfg, tokenizer, examples, device):
 
     # Create prompts
     prepended_prompt = cfg.prompt.text
-    examples_with_prompts = list(map(lambda e: create_prompt(prepended_prompt, e), examples))
+    examples_with_prompts = list(map(lambda e: create_prompt(prepended_prompt, e,
+                                                             is_fewshot=cfg.basic.is_fewshot), examples))
 
     # Classify examples
     examples_with_labels = []

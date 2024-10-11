@@ -3,9 +3,10 @@ basic:
   device_map: auto
   offload_folder: ./offload
   output_dir: results
+  is_fewshot: False
 defaults:
   - _self_
-  - model: hatebert
+  - model: llama
   - dataset: mixed_irony
   - prompt: defaults
 hydra:
