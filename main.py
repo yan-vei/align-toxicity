@@ -55,8 +55,12 @@ def run_pipeline(cfg: DictConfig):
         examples_with_labels = run_gpt2(cfg=cfg, tokenizer=tokenizer, examples=examples, device=device)
 
     # Save the processed data with labels
-    with open(cfg.basic.output_dir + "/" + cfg.model.output_folder + "/" + cfg.dataset.name + ".json", 'w') as f:
-        json.dump(examples_with_labels, f)
+    if cfg.basic.is_fewshot:
+        with open(cfg.basic.output_dir + "/" + cfg.model.output_folder + "/" + cfg.dataset.name + "_fewshot.json", 'w') as f:
+            json.dump(examples_with_labels, f)
+    else:
+        with open(cfg.basic.output_dir + "/" + cfg.model.output_folder + "/" + cfg.dataset.name + ".json", 'w') as f:
+            json.dump(examples_with_labels, f)
 
     print(f"\t Finished processing the dataset {cfg.dataset.name} with the model {cfg.model.name}.")
 
