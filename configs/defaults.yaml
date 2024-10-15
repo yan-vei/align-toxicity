@@ -6,8 +6,8 @@ basic:
   is_fewshot: True
 defaults:
   - _self_
-  - model: llama
-  - dataset: mixed_irony
+  - model: gpt-2
+  - dataset: implicit_hate
   - prompt: defaults
 hydra:
   job:
