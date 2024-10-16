@@ -53,6 +53,8 @@ def run_pipeline(cfg: DictConfig):
         examples_with_labels = run_hatebert(cfg=cfg, tokenizer=tokenizer, examples=examples, device=device)
     elif cfg.model.output_folder == 'gpt2':
         examples_with_labels = run_gpt2(cfg=cfg, tokenizer=tokenizer, examples=examples, device=device)
+    elif cfg.model.output_folder == 'vicuna':
+        examples_with_labels = run_vicuna(cfg=cfg, tokenizer=tokenizer, examples=examples, device=device)
 
     # Save the processed data with labels
     if cfg.basic.is_fewshot:
@@ -66,6 +68,41 @@ def run_pipeline(cfg: DictConfig):
 
     if use_wandb:
         wandb.finish()
+
+
+def run_vicuna(cfg, tokenizer, examples, device):
+    """
+    Run labeling pipeline using RLHF fine-tuned StableVicuna model.
+    :param cfg: hydra config
+    :param examples: dict, unlabeled data
+    :param tokenizer: tokenizer
+    :return: dict, examples with predicted labels
+    """
+
+    hf_kwargs = {"device_map": cfg.basic.device_map, "offload_folder": cfg.basic.offload_folder}
+    model = AutoModelForCausalLM.from_pretrained(
+        cfg.model.name,
+        use_auth_token=True,
+        **hf_kwargs,
+    )
+
+    # Create prompts
+    prepended_prompt = cfg.prompt.text
+    examples_with_prompts = list(map(lambda e: create_prompt(prepended_prompt, e,
+                                                             is_fewshot=cfg.basic.is_fewshot), examples))
+
+    # Classify examples
+    examples_with_labels = []
+    for example in tqdm.tqdm(examples_with_prompts):
+        inputs = tokenizer(example['prompt'], return_tensors="pt").to(device)
+        outputs = model.generate(**inputs, max_new_tokens=cfg.model.max_new_tokens)
+        result = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        label = result.split('Answer:')[-1].strip()
+        example['predicted_label'] = label
+
+        examples_with_labels.append(example)
+
+    return examples_with_labels
 
 
 def run_llama(cfg, tokenizer, examples, device):
