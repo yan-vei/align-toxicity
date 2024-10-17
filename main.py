@@ -76,6 +76,7 @@ def run_vicuna(cfg, tokenizer, examples, device):
     :param cfg: hydra config
     :param examples: dict, unlabeled data
     :param tokenizer: tokenizer
+    :param device: device, GPU or CPU
     :return: dict, examples with predicted labels
     """
 
@@ -111,6 +112,7 @@ def run_llama(cfg, tokenizer, examples, device):
     :param cfg: hydra config
     :param examples: dict, unlabeled data
     :param tokenizer: tokenizer
+    :param device: device, GPU or CPU
     :return: dict, examples with predicted labels
     """
 
@@ -146,6 +148,7 @@ def run_hatebert(cfg, tokenizer, examples, device):
     :param cfg: hydra config
     :param tokenizer: tokenizer
     :param examples: dict, unlabeled data
+    :param device: device, GPU or CPU
     :return: dict, examples with predicted labels
     """
 
@@ -170,6 +173,7 @@ def run_gpt2(cfg, tokenizer, examples, device):
     :param cfg: hydra config
     :param examples: dict, unlabeled data
     :param tokenizer: tokenizer
+    :param device: device, GPU or CPU
     :return: dict, examples with predicted labels
     """
 
