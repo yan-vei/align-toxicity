@@ -7,7 +7,7 @@ basic:
 defaults:
   - _self_
   - model: vicuna
-  - dataset: implicit_hate
+  - dataset: offenseval_implicit
   - prompt: defaults
 hydra:
   job:
