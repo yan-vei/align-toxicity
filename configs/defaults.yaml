@@ -3,7 +3,7 @@ basic:
   device_map: auto
   offload_folder: ./offload
   output_dir: results
-  is_fewshot: True
+  is_fewshot: False
 defaults:
   - _self_
   - model: vicuna
